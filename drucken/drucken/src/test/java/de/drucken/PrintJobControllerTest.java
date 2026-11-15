@@ -1,6 +1,7 @@
 package de.drucken;
 
 import de.drucken.service.PdfPrintService;
+import de.drucken.service.AsyncPrintJobSubmissionService;
 import de.drucken.persistence.PrintJobRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class PrintJobControllerTest {
     @MockitoBean
     PdfPrintService pdfPrintService;
 
+    @MockitoBean
+    AsyncPrintJobSubmissionService submissionService;
+
     @BeforeEach
     void leertAuftraege() {
         jobRepository.deleteAll();
@@ -46,14 +50,14 @@ class PrintJobControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"dokument\":\"test.pdf\",\"kopien\":2}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("IN_BEARBEITUNG"))
+                .andExpect(jsonPath("$.status").value("WARTEND"))
                 .andReturn();
 
         String id = com.jayway.jsonpath.JsonPath.read(
                 result.getResponse().getContentAsString(), "$.id").toString();
         mvc.perform(get("/api/druckauftraege/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_BEARBEITUNG"));
+                .andExpect(jsonPath("$.status").value("WARTEND"));
     }
 
     @Test
