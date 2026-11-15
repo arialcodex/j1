@@ -10,7 +10,9 @@ public record PrintJob(
         @NotBlank String dokument,
         @Min(1) int kopien,
         PrintStatus status,
-        Instant erstelltAm) {
+        Instant erstelltAm,
+        Instant aktualisiertAm,
+        String fehlermeldung) {
 
     public enum PrintStatus { WARTEND, IN_BEARBEITUNG, FERTIG, FEHLER }
 }
