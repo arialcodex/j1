@@ -15,6 +15,7 @@ mvn test
 ## Beispiel-Endpunkte
 - `GET  /api/druckauftraege` – alle Aufträge
 - `GET  /api/druckauftraege/{id}` – ein Auftrag
+- `GET  /api/druckauftraege/{id}/status` – Status, letzte Änderung und Fehlermeldung
 - `POST /api/druckauftraege` – PDF-Druckauftrag, Body: `{"dokument":"test.pdf","kopien":2}`
 - `GET  /actuator/health` – Health-Check
 
@@ -24,7 +25,7 @@ PDF-Dateien müssen im konfigurierten Verzeichnis `drucken.pdf-verzeichnis` lieg
 lokale Drucker das PDF-Format oder die gewünschte Kopienzahl nicht, wird der
 Auftrag mit Status `FEHLER` und einer Fehlermeldung gespeichert.
 
-Der Status kann über `GET /api/druckauftraege/{id}` nachverfolgt werden.
+Der Status kann über `GET /api/druckauftraege/{id}/status` abgefragt werden.
 `FERTIG` wird erst gemeldet, wenn der lokale PrintService ein Abschlussereignis
 sendet; `aktualisiertAm` enthält den Zeitpunkt der letzten Statusänderung.
 Aufträge und Status werden in einer lokalen H2-Dateidatenbank (`drucken-db.mv.db`)

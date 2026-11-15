@@ -2,6 +2,7 @@ package de.drucken.controller;
 
 import de.drucken.model.PrintJob;
 import de.drucken.model.PrintJobRequest;
+import de.drucken.model.PrintJobStatusResponse;
 import de.drucken.service.PrintJobService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,14 @@ public class PrintJobController {
     public ResponseEntity<PrintJob> einzeln(@PathVariable long id) {
         return service.finden(id)
                 .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<PrintJobStatusResponse> status(@PathVariable long id) {
+        return service.finden(id)
+                .map(job -> ResponseEntity.ok(new PrintJobStatusResponse(
+                        job.id(), job.status(), job.aktualisiertAm(), job.fehlermeldung())))
                 .orElse(ResponseEntity.notFound().build());
     }
 

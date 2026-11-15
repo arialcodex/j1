@@ -58,6 +58,13 @@ class PrintJobControllerTest {
         mvc.perform(get("/api/druckauftraege/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("WARTEND"));
+
+        mvc.perform(get("/api/druckauftraege/{id}/status", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(Integer.parseInt(id)))
+                .andExpect(jsonPath("$.status").value("WARTEND"))
+                .andExpect(jsonPath("$.aktualisiertAm").exists())
+                .andExpect(jsonPath("$.fehlermeldung").doesNotExist());
     }
 
     @Test
@@ -66,5 +73,11 @@ class PrintJobControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"dokument\":\"test.pdf\",\"kopien\":0}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void liefertNotFoundFuerUnbekanntenStatus() throws Exception {
+        mvc.perform(get("/api/druckauftraege/{id}/status", 999999))
+                .andExpect(status().isNotFound());
     }
 }
