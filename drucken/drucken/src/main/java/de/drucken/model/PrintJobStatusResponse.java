@@ -6,5 +6,7 @@ public record PrintJobStatusResponse(
         Long id,
         PrintJob.PrintStatus status,
         Instant aktualisiertAm,
-        String fehlermeldung) {
+        String fehlermeldung,
+        int versuche,
+        Instant naechsterVersuchAm) {
 }

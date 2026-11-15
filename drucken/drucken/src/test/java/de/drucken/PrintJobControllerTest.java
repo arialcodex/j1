@@ -64,7 +64,7 @@ class PrintJobControllerTest {
                 .andExpect(jsonPath("$.id").value(Integer.parseInt(id)))
                 .andExpect(jsonPath("$.status").value("WARTEND"))
                 .andExpect(jsonPath("$.aktualisiertAm").exists())
-                .andExpect(jsonPath("$.fehlermeldung").doesNotExist());
+                .andExpect(jsonPath("$.versuche").value(0));
     }
 
     @Test

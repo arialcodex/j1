@@ -32,13 +32,13 @@ public class PrintJobService {
     }
 
     public PrintJob erstellen(PrintJobRequest request) {
-        var pdf = pdfPrintService.pdfDateiFinden(request.dokument());
+        pdfPrintService.pdfDateiFinden(request.dokument());
         Instant now = Instant.now();
         PrintJobEntity job = jobRepository.save(
                 new PrintJobEntity(request.dokument(), request.kopien(), PrintStatus.WARTEND, now));
 
         try {
-            submissionService.senden(job.getId(), pdf, request.kopien());
+            submissionService.senden(job.getId());
         } catch (TaskRejectedException exception) {
             statusService.aktualisieren(
                     job.getId(), PrintStatus.FEHLER, "Die Druckwarteschlange ist ausgelastet.");

@@ -12,7 +12,9 @@ public record PrintJob(
         PrintStatus status,
         Instant erstelltAm,
         Instant aktualisiertAm,
-        String fehlermeldung) {
+        String fehlermeldung,
+        int versuche,
+        Instant naechsterVersuchAm) {
 
     public enum PrintStatus { WARTEND, IN_BEARBEITUNG, FERTIG, FEHLER }
 }

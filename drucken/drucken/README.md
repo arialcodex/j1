@@ -28,6 +28,10 @@ Auftrag mit Status `FEHLER` und einer Fehlermeldung gespeichert.
 Der Status kann über `GET /api/druckauftraege/{id}/status` abgefragt werden.
 `FERTIG` wird erst gemeldet, wenn der lokale PrintService ein Abschlussereignis
 sendet; `aktualisiertAm` enthält den Zeitpunkt der letzten Statusänderung.
+Ist der Drucker nicht auffindbar oder schlägt die Übermittlung fehl, wird der
+Auftrag bis zu drei weitere Male nach 10 Sekunden, 1 Minute und 5 Minuten
+gesendet. `versuche` und `naechsterVersuchAm` sind im Status abrufbar;
+ausstehende Wiederholungen werden nach einem Neustart wieder eingeplant.
 Aufträge und Status werden in einer lokalen H2-Dateidatenbank (`drucken-db.mv.db`)
 gespeichert und bleiben nach einem Neustart erhalten. Die JDBC-URL kann über
 `spring.datasource.url` angepasst werden.

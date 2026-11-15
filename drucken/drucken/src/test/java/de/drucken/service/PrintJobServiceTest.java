@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import javax.print.DocPrintJob;
@@ -14,6 +15,8 @@ import javax.print.PrintException;
 import javax.print.event.PrintJobEvent;
 import javax.print.event.PrintJobListener;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,6 +41,9 @@ class PrintJobServiceTest {
 
     @MockitoBean
     PdfPrintService printService;
+
+    @MockitoBean(name = "printRetryTaskScheduler")
+    TaskScheduler retryTaskScheduler;
 
     @BeforeEach
     void leertAuftraege() {
@@ -82,6 +88,23 @@ class PrintJobServiceTest {
         assertEquals("Printer unavailable", service.finden(job.id()).orElseThrow().fehlermeldung());
     }
 
+    @Test
+    void plantBeiNichtErreichbaremDruckerDenErstenRetryNachZehnSekunden() throws Exception {
+        Path pdf = Path.of("report.pdf");
+        when(printService.pdfDateiFinden("report.pdf")).thenReturn(pdf);
+        doThrow(new PrintServiceUnavailableException("Printer not found"))
+                .when(printService).senden(eq(pdf), eq(1), any());
+
+        PrintJob created = service.erstellen(new PrintJobRequest("report.pdf", 1));
+        PrintJob retry = warteAufVersuche(created.id(), 1);
+
+        assertEquals(PrintJob.PrintStatus.WARTEND, retry.status());
+        assertEquals(1, retry.versuche());
+        assertTrue(retry.naechsterVersuchAm().isAfter(Instant.now()));
+        assertTrue(Duration.between(retry.aktualisiertAm(), retry.naechsterVersuchAm()).toSeconds() >= 9);
+        assertTrue(Duration.between(retry.aktualisiertAm(), retry.naechsterVersuchAm()).toSeconds() <= 10);
+    }
+
     private boolean warteAufStatus(long id, PrintJob.PrintStatus status) throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         while (System.nanoTime() < deadline) {
@@ -91,5 +114,17 @@ class PrintJobServiceTest {
             Thread.sleep(10);
         }
         return false;
+    }
+
+    private PrintJob warteAufVersuche(long id, int versuche) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            PrintJob job = service.finden(id).orElseThrow();
+            if (job.versuche() == versuche && job.naechsterVersuchAm() != null) {
+                return job;
+            }
+            Thread.sleep(10);
+        }
+        throw new AssertionError("Druckauftrag hat den erwarteten Wiederholungsstatus nicht erreicht.");
     }
 }

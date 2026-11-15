@@ -37,7 +37,8 @@ public class PrintJobController {
     public ResponseEntity<PrintJobStatusResponse> status(@PathVariable long id) {
         return service.finden(id)
                 .map(job -> ResponseEntity.ok(new PrintJobStatusResponse(
-                        job.id(), job.status(), job.aktualisiertAm(), job.fehlermeldung())))
+                        job.id(), job.status(), job.aktualisiertAm(), job.fehlermeldung(),
+                        job.versuche(), job.naechsterVersuchAm())))
                 .orElse(ResponseEntity.notFound().build());
     }
 

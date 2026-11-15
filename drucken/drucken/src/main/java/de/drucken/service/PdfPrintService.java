@@ -76,7 +76,12 @@ public class PdfPrintService {
         job.addPrintJobListener(listener);
         try (var input = Files.newInputStream(pdf)) {
             Doc document = new SimpleDoc(input, flavor, null);
-            job.print(document, attributes);
+            try {
+                job.print(document, attributes);
+            } catch (PrintException exception) {
+                throw new PrintServiceUnavailableException(
+                        "Der Drucker '" + printerName + "' ist nicht erreichbar.", exception);
+            }
         } catch (IOException exception) {
             throw new PrintException(exception);
         }
@@ -88,6 +93,7 @@ public class PdfPrintService {
                 return printer;
             }
         }
-        throw new PrintException("Der konfigurierte Drucker '" + printerName + "' wurde nicht gefunden.");
+        throw new PrintServiceUnavailableException(
+                "Der konfigurierte Drucker '" + printerName + "' wurde nicht gefunden.");
     }
 }

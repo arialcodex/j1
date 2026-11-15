@@ -40,6 +40,11 @@ public class PrintJobEntity {
     @Column(length = 2000)
     private String fehlermeldung;
 
+    @Column(nullable = false)
+    private int versuche;
+
+    private Instant naechsterVersuchAm;
+
     protected PrintJobEntity() {
     }
 
@@ -59,13 +64,40 @@ public class PrintJobEntity {
         return status;
     }
 
-    public void aktualisieren(PrintStatus status, Instant aktualisiertAm, String fehlermeldung) {
+    public String getDokument() {
+        return dokument;
+    }
+
+    public int getKopien() {
+        return kopien;
+    }
+
+    public int getVersuche() {
+        return versuche;
+    }
+
+    public Instant getNaechsterVersuchAm() {
+        return naechsterVersuchAm;
+    }
+
+    public void versuchStarten(Instant aktualisiertAm) {
+        versuche++;
+        status = PrintStatus.IN_BEARBEITUNG;
+        this.aktualisiertAm = aktualisiertAm;
+        fehlermeldung = null;
+        naechsterVersuchAm = null;
+    }
+
+    public void aktualisieren(
+            PrintStatus status, Instant aktualisiertAm, String fehlermeldung, Instant naechsterVersuchAm) {
         this.status = status;
         this.aktualisiertAm = aktualisiertAm;
         this.fehlermeldung = fehlermeldung;
+        this.naechsterVersuchAm = naechsterVersuchAm;
     }
 
     public PrintJob toModel() {
-        return new PrintJob(id, dokument, kopien, status, erstelltAm, aktualisiertAm, fehlermeldung);
+        return new PrintJob(id, dokument, kopien, status, erstelltAm, aktualisiertAm,
+                fehlermeldung, versuche, naechsterVersuchAm);
     }
 }
